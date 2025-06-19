@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:perpustakaan_app/model/buku.dart';
 import 'package:perpustakaan_app/service/buku_service.dart';
 import 'package:perpustakaan_app/ui/buku_form.dart';
-import 'package:perpustakaan_app/ui/sidebar.dart';
+import 'package:perpustakaan_app/widget/sidebar.dart';
 
 class BukuPage extends StatefulWidget {
   const BukuPage({super.key});
@@ -53,7 +53,6 @@ class _BukuPageState extends State<BukuPage> {
       return cocokJudul && cocokTahunMin && cocokTahunMax;
     }).toList();
 
-    // Urutkan
     hasil.sort((a, b) {
       int cmp;
       if (sortBy == 'Judul') {
@@ -84,6 +83,8 @@ class _BukuPageState extends State<BukuPage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context); // untuk dark/light mode support
+
     return Scaffold(
       appBar: AppBar(title: const Text('Data Buku')),
       drawer: const Sidebar(),
@@ -97,7 +98,7 @@ class _BukuPageState extends State<BukuPage> {
                 hintText: 'Cari judul atau pengarang...',
                 prefixIcon: const Icon(Icons.search),
                 filled: true,
-                fillColor: Colors.teal.shade50,
+                fillColor: theme.brightness == Brightness.dark ? Colors.grey.shade800 : Colors.teal.shade50,
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
               ),
               onChanged: (value) => searchAndFilter(),
@@ -112,7 +113,7 @@ class _BukuPageState extends State<BukuPage> {
                       labelText: 'Tahun Min',
                       border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
                       filled: true,
-                      fillColor: Colors.teal.shade50,
+                      fillColor: theme.brightness == Brightness.dark ? Colors.grey.shade800 : Colors.teal.shade50,
                     ),
                     keyboardType: TextInputType.number,
                     onChanged: (value) => searchAndFilter(),
@@ -126,7 +127,7 @@ class _BukuPageState extends State<BukuPage> {
                       labelText: 'Tahun Max',
                       border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
                       filled: true,
-                      fillColor: Colors.teal.shade50,
+                      fillColor: theme.brightness == Brightness.dark ? Colors.grey.shade800 : Colors.teal.shade50,
                     ),
                     keyboardType: TextInputType.number,
                     onChanged: (value) => searchAndFilter(),
@@ -179,14 +180,22 @@ class _BukuPageState extends State<BukuPage> {
                 itemBuilder: (context, index) {
                   Buku buku = _filteredBukuList[index];
                   return Card(
-                    color: Colors.teal.shade50,
+                    color: theme.brightness == Brightness.dark ? Colors.grey.shade900 : Colors.teal.shade50,
                     elevation: 3,
                     child: ListTile(
                       title: Text(
                         'ID: ${buku.id} - ${buku.judul}',
-                        style: const TextStyle(fontWeight: FontWeight.bold),
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: theme.brightness == Brightness.dark ? Colors.white : Colors.black,
+                        ),
                       ),
-                      subtitle: Text('Pengarang: ${buku.pengarang}\nTahun: ${buku.tahunTerbit}'),
+                      subtitle: Text(
+                        'Pengarang: ${buku.pengarang}\nTahun: ${buku.tahunTerbit}',
+                        style: TextStyle(
+                          color: theme.brightness == Brightness.dark ? Colors.white70 : Colors.black87,
+                        ),
+                      ),
                       trailing: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:perpustakaan_app/model/anggota.dart';
 import 'package:perpustakaan_app/service/anggota_service.dart';
 import 'package:perpustakaan_app/ui/anggota_form.dart';
-import 'package:perpustakaan_app/ui/sidebar.dart';
+import 'package:perpustakaan_app/widget/sidebar.dart';
 
 class AnggotaPage extends StatefulWidget {
   const AnggotaPage({super.key});
@@ -26,7 +26,7 @@ class _AnggotaPageState extends State<AnggotaPage> {
     _anggotaList = await _anggotaService.getAll();
     _filteredAnggotaList = _anggotaList;
 
-    // Ambil jurusan unik dari data anggota
+    // Ambil jurusan unik
     _jurusanList = _anggotaList.map((e) => e.jurusan).toSet().toList();
     setState(() {});
   }
@@ -35,7 +35,10 @@ class _AnggotaPageState extends State<AnggotaPage> {
     await _anggotaService.delete(id);
     getData();
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Data Anggota berhasil dihapus!'), backgroundColor: Colors.redAccent),
+      const SnackBar(
+        content: Text('Data Anggota berhasil dihapus!'),
+        backgroundColor: Colors.redAccent,
+      ),
     );
   }
 
@@ -75,6 +78,8 @@ class _AnggotaPageState extends State<AnggotaPage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
       appBar: AppBar(title: const Text('Data Anggota')),
       drawer: const Sidebar(),
@@ -88,7 +93,7 @@ class _AnggotaPageState extends State<AnggotaPage> {
                 labelText: 'Filter Nama',
                 prefixIcon: const Icon(Icons.search),
                 filled: true,
-                fillColor: Colors.teal.shade50,
+                fillColor: theme.brightness == Brightness.dark ? Colors.grey.shade800 : Colors.teal.shade50,
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
               ),
               onChanged: (value) => filterAnggota(),
@@ -100,7 +105,7 @@ class _AnggotaPageState extends State<AnggotaPage> {
                 labelText: 'Filter NIM',
                 prefixIcon: const Icon(Icons.search),
                 filled: true,
-                fillColor: Colors.teal.shade50,
+                fillColor: theme.brightness == Brightness.dark ? Colors.grey.shade800 : Colors.teal.shade50,
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
               ),
               onChanged: (value) => filterAnggota(),
@@ -121,7 +126,7 @@ class _AnggotaPageState extends State<AnggotaPage> {
               },
               decoration: InputDecoration(
                 filled: true,
-                fillColor: Colors.teal.shade50,
+                fillColor: theme.brightness == Brightness.dark ? Colors.grey.shade800 : Colors.teal.shade50,
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
               ),
             ),
@@ -144,15 +149,21 @@ class _AnggotaPageState extends State<AnggotaPage> {
                   return Card(
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     elevation: 5,
-                    color: Colors.blue.shade50,
+                    color: theme.brightness == Brightness.dark ? Colors.grey.shade900 : Colors.blue.shade50,
                     child: ListTile(
-                      leading: const Icon(Icons.person, color: Colors.blue),
+                      leading: Icon(Icons.person, color: theme.brightness == Brightness.dark ? Colors.white : Colors.blue),
                       title: Text(
                         anggota.nama,
-                        style: const TextStyle(fontWeight: FontWeight.bold),
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: theme.brightness == Brightness.dark ? Colors.white : Colors.black,
+                        ),
                       ),
                       subtitle: Text(
                         'ID: ${anggota.id}\nNIM: ${anggota.nim}\nJurusan: ${anggota.jurusan}',
+                        style: TextStyle(
+                          color: theme.brightness == Brightness.dark ? Colors.white70 : Colors.black87,
+                        ),
                       ),
                       trailing: Row(
                         mainAxisSize: MainAxisSize.min,

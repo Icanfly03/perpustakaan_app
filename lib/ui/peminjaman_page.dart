@@ -3,7 +3,7 @@ import 'package:perpustakaan_app/model/peminjaman.dart';
 import 'package:perpustakaan_app/service/peminjaman_service.dart';
 import 'package:perpustakaan_app/service/buku_service.dart';
 import 'package:perpustakaan_app/ui/peminjaman_form.dart';
-import 'package:perpustakaan_app/ui/sidebar.dart';
+import 'package:perpustakaan_app/widget/sidebar.dart';
 import 'package:intl/intl.dart';
 
 class PeminjamanPage extends StatefulWidget {
@@ -71,6 +71,8 @@ class _PeminjamanPageState extends State<PeminjamanPage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
       appBar: AppBar(title: const Text('Data Peminjaman')),
       drawer: const Sidebar(),
@@ -78,24 +80,34 @@ class _PeminjamanPageState extends State<PeminjamanPage> {
         padding: const EdgeInsets.all(8),
         child: Column(
           children: [
-            DropdownButton<String>(
-              hint: const Text('Filter ID Buku'),
+            DropdownButtonFormField<String>(
               value: selectedIdBuku,
+              hint: const Text('Filter ID Buku'),
               isExpanded: true,
               items: _idBukuList.map((id) {
                 return DropdownMenuItem(value: id, child: Text(id));
               }).toList(),
               onChanged: (value) => setState(() => selectedIdBuku = value),
+              decoration: InputDecoration(
+                filled: true,
+                fillColor: theme.brightness == Brightness.dark ? Colors.grey.shade800 : Colors.teal.shade50,
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+              ),
             ),
             const SizedBox(height: 5),
-            DropdownButton<String>(
-              hint: const Text('Filter ID Anggota'),
+            DropdownButtonFormField<String>(
               value: selectedIdAnggota,
+              hint: const Text('Filter ID Anggota'),
               isExpanded: true,
               items: _idAnggotaList.map((id) {
                 return DropdownMenuItem(value: id, child: Text(id));
               }).toList(),
               onChanged: (value) => setState(() => selectedIdAnggota = value),
+              decoration: InputDecoration(
+                filled: true,
+                fillColor: theme.brightness == Brightness.dark ? Colors.grey.shade800 : Colors.teal.shade50,
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+              ),
             ),
             const SizedBox(height: 10),
             ElevatedButton.icon(
@@ -113,20 +125,24 @@ class _PeminjamanPageState extends State<PeminjamanPage> {
                 itemCount: getFilteredList().length,
                 itemBuilder: (context, index) {
                   Peminjaman pinjam = getFilteredList()[index];
-
                   return Card(
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     elevation: 5,
-                    color: Colors.teal.shade50,
+                    color: theme.brightness == Brightness.dark ? Colors.grey.shade900 : Colors.teal.shade50,
                     child: ListTile(
-                      leading: const Icon(Icons.book, color: Colors.teal),
+                      leading: Icon(Icons.book, color: theme.brightness == Brightness.dark ? Colors.white : Colors.teal),
                       title: Text(
                         'ID Buku: ${pinjam.idBuku}',
-                        style: const TextStyle(fontWeight: FontWeight.bold),
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: theme.brightness == Brightness.dark ? Colors.white : Colors.black,
+                        ),
                       ),
                       subtitle: Text(
-                        'ID Anggota: ${pinjam.idAnggota}\n'
-                        'Tanggal Pinjam: ${formatTanggal(pinjam.tanggalPinjam)}',
+                        'ID Anggota: ${pinjam.idAnggota}\nTanggal Pinjam: ${formatTanggal(pinjam.tanggalPinjam)}',
+                        style: TextStyle(
+                          color: theme.brightness == Brightness.dark ? Colors.white70 : Colors.black87,
+                        ),
                       ),
                       trailing: Row(
                         mainAxisSize: MainAxisSize.min,

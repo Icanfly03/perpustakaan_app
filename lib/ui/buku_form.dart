@@ -17,7 +17,7 @@ class _BukuFormState extends State<BukuForm> {
   final tahunCtrl = TextEditingController();
   final BukuService _bukuService = BukuService();
 
-  List<Buku> _bukuList = []; // untuk validasi duplicate
+  List<Buku> _bukuList = [];
 
   @override
   void initState() {
@@ -39,7 +39,6 @@ class _BukuFormState extends State<BukuForm> {
 
   void save() async {
     if (_formKey.currentState!.validate()) {
-      // Validasi duplicate: jika ada buku dengan judul, pengarang, tahun yang sama dan bukan data yang sedang diedit
       bool duplikat = _bukuList.any((buku) =>
           buku.judul.toLowerCase() == judulCtrl.text.toLowerCase() &&
           buku.pengarang.toLowerCase() == pengarangCtrl.text.toLowerCase() &&
@@ -79,6 +78,8 @@ class _BukuFormState extends State<BukuForm> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context); // Theme aware
+
     return Scaffold(
       appBar: AppBar(title: Text(widget.buku == null ? 'Tambah Buku' : 'Edit Buku')),
       body: Padding(
@@ -91,9 +92,14 @@ class _BukuFormState extends State<BukuForm> {
                 controller: judulCtrl,
                 decoration: InputDecoration(
                   labelText: 'Judul Buku',
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
                   filled: true,
-                  fillColor: Colors.teal.shade50,
+                  fillColor: theme.brightness == Brightness.dark
+                      ? Colors.grey.shade800
+                      : Colors.teal.shade50,
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                ),
+                style: TextStyle(
+                  color: theme.brightness == Brightness.dark ? Colors.white : Colors.black,
                 ),
                 validator: (value) =>
                     value!.isEmpty ? 'Judul wajib diisi' : null,
@@ -103,9 +109,14 @@ class _BukuFormState extends State<BukuForm> {
                 controller: pengarangCtrl,
                 decoration: InputDecoration(
                   labelText: 'Pengarang',
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
                   filled: true,
-                  fillColor: Colors.teal.shade50,
+                  fillColor: theme.brightness == Brightness.dark
+                      ? Colors.grey.shade800
+                      : Colors.teal.shade50,
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                ),
+                style: TextStyle(
+                  color: theme.brightness == Brightness.dark ? Colors.white : Colors.black,
                 ),
                 validator: (value) =>
                     value!.isEmpty ? 'Pengarang wajib diisi' : null,
@@ -113,12 +124,17 @@ class _BukuFormState extends State<BukuForm> {
               const SizedBox(height: 10),
               TextFormField(
                 controller: tahunCtrl,
-                keyboardType: TextInputType.number, // hanya angka
+                keyboardType: TextInputType.number,
                 decoration: InputDecoration(
                   labelText: 'Tahun Terbit',
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
                   filled: true,
-                  fillColor: Colors.teal.shade50,
+                  fillColor: theme.brightness == Brightness.dark
+                      ? Colors.grey.shade800
+                      : Colors.teal.shade50,
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                ),
+                style: TextStyle(
+                  color: theme.brightness == Brightness.dark ? Colors.white : Colors.black,
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {

@@ -36,14 +36,17 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
-      backgroundColor: Colors.teal.shade50,
+      backgroundColor: theme.brightness == Brightness.dark ? Colors.black : Colors.teal.shade50,
       body: Center(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24),
           child: Card(
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
             elevation: 8,
+            color: theme.cardColor,
             child: Padding(
               padding: const EdgeInsets.all(24),
               child: Form(
@@ -51,11 +54,13 @@ class _LoginPageState extends State<LoginPage> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Icons.library_books, color: Colors.teal, size: 80),
+                    Icon(Icons.library_books, color: Colors.teal.shade300, size: 80),
                     const SizedBox(height: 16),
-                    const Text('Selamat Datang!', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                    Text('Selamat Datang!',
+                        style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: theme.textTheme.bodyLarge?.color)),
                     const SizedBox(height: 8),
-                    const Text('Silakan login untuk masuk', style: TextStyle(fontSize: 14, color: Colors.grey)),
+                    Text('Silakan login untuk masuk',
+                        style: TextStyle(fontSize: 14, color: theme.hintColor)),
                     const SizedBox(height: 24),
                     TextFormField(
                       controller: usernameCtrl,
@@ -63,7 +68,7 @@ class _LoginPageState extends State<LoginPage> {
                         labelText: 'Username',
                         prefixIcon: const Icon(Icons.person),
                         filled: true,
-                        fillColor: Colors.teal.shade50,
+                        fillColor: theme.brightness == Brightness.dark ? Colors.grey.shade800 : Colors.teal.shade50,
                         border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
                       ),
                       validator: (value) => value!.isEmpty ? 'Username wajib diisi' : null,
@@ -76,7 +81,7 @@ class _LoginPageState extends State<LoginPage> {
                         labelText: 'Password',
                         prefixIcon: const Icon(Icons.lock),
                         filled: true,
-                        fillColor: Colors.teal.shade50,
+                        fillColor: theme.brightness == Brightness.dark ? const Color.fromARGB(255, 242, 241, 241) : Colors.teal.shade50,
                         border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
                       ),
                       validator: (value) => value!.isEmpty ? 'Password wajib diisi' : null,

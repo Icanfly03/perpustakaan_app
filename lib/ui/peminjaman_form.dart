@@ -24,7 +24,9 @@ class _PeminjamanFormState extends State<PeminjamanForm> {
 
   List<String> _idBukuList = [];
   List<String> _idAnggotaList = [];
-  int _batasPinjam = 3; // Default jika belum diset
+  int _batasPinjam = 3;
+
+  bool _isLoading = true;
 
   @override
   void initState() {
@@ -34,24 +36,25 @@ class _PeminjamanFormState extends State<PeminjamanForm> {
       idAnggotaCtrl.text = widget.peminjaman!.idAnggota;
       tanggalPinjamCtrl.text = widget.peminjaman!.tanggalPinjam;
     }
-    loadData();
-    loadPengaturan();
+    initForm();
+  }
+
+  Future<void> initForm() async {
+    await loadData();
+    await loadPengaturan();
+    setState(() => _isLoading = false);
   }
 
   Future<void> loadPengaturan() async {
     final prefs = await SharedPreferences.getInstance();
-    setState(() {
-      _batasPinjam = prefs.getInt('maxPinjam') ?? 3;
-    });
+    _batasPinjam = prefs.getInt('maxPinjam') ?? 3;
   }
 
-  void loadData() async {
+  Future<void> loadData() async {
     var bukuList = await _bukuService.getAll();
     var anggotaList = await _anggotaService.getAll();
-    setState(() {
-      _idBukuList = bukuList.map((buku) => buku.id).toList();
-      _idAnggotaList = anggotaList.map((anggota) => anggota.id).toList();
-    });
+    _idBukuList = bukuList.map((buku) => buku.id).toList();
+    _idAnggotaList = anggotaList.map((anggota) => anggota.id).toList();
   }
 
   Future<void> pilihTanggal() async {
@@ -68,36 +71,24 @@ class _PeminjamanFormState extends State<PeminjamanForm> {
 
   void save() async {
     if (_formKey.currentState!.validate()) {
+      List<Peminjaman> existingPeminjaman = await _peminjamanService.getAll();
+
       if (!_idBukuList.contains(idBukuCtrl.text)) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Error: ID Buku tidak ditemukan di data Buku!'),
-            backgroundColor: Colors.red),
-        );
+        showError('ID Buku tidak ditemukan!');
         return;
       }
 
       if (!_idAnggotaList.contains(idAnggotaCtrl.text)) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Error: ID Anggota tidak ditemukan di data Anggota!'),
-            backgroundColor: Colors.red),
-        );
+        showError('ID Anggota tidak ditemukan!');
         return;
       }
-
-      List<Peminjaman> existingPeminjaman = await _peminjamanService.getAll();
 
       bool sudahDipinjam = existingPeminjaman.any((pinjam) =>
           pinjam.idBuku == idBukuCtrl.text &&
           pinjam.id != widget.peminjaman?.id);
 
       if (sudahDipinjam) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Error: Buku ini sudah dipinjam oleh anggota lain!'),
-            backgroundColor: Colors.red),
-        );
+        showError('Buku ini sudah dipinjam!');
         return;
       }
 
@@ -108,11 +99,7 @@ class _PeminjamanFormState extends State<PeminjamanForm> {
           .length;
 
       if (jumlahPinjamanAnggota >= _batasPinjam) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error: Anggota ini sudah meminjam maksimal $_batasPinjam buku!'),
-            backgroundColor: Colors.red),
-        );
+        showError('Anggota ini sudah meminjam maksimal $_batasPinjam buku!');
         return;
       }
 
@@ -130,73 +117,94 @@ class _PeminjamanFormState extends State<PeminjamanForm> {
       }
 
       Navigator.pop(context);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-            content: Text('Data Peminjaman berhasil disimpan!'),
-            backgroundColor: Colors.teal),
-      );
+      showSuccess('Data Peminjaman berhasil disimpan!');
     }
+  }
+
+  void showError(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message), backgroundColor: Colors.red),
+    );
+  }
+
+  void showSuccess(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message), backgroundColor: Colors.teal),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
       appBar: AppBar(title: Text(widget.peminjaman == null ? 'Tambah Peminjaman' : 'Edit Peminjaman')),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Form(
-          key: _formKey,
-          child: ListView(
-            children: [
-              TextFormField(
-                controller: idBukuCtrl,
-                decoration: InputDecoration(
-                  labelText: 'ID Buku',
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-                  filled: true,
-                  fillColor: Colors.teal.shade50,
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : Padding(
+              padding: const EdgeInsets.all(16),
+              child: Form(
+                key: _formKey,
+                child: ListView(
+                  children: [
+                    TextFormField(
+                      controller: idBukuCtrl,
+                      decoration: InputDecoration(
+                        labelText: 'ID Buku',
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                        filled: true,
+                        fillColor: theme.brightness == Brightness.dark
+                            ? Colors.grey.shade800
+                            : Colors.teal.shade50,
+                      ),
+                      style: TextStyle(color: theme.brightness == Brightness.dark ? Colors.white : Colors.black),
+                      validator: (value) => value!.isEmpty ? 'ID Buku wajib diisi' : null,
+                    ),
+                    const SizedBox(height: 10),
+                    TextFormField(
+                      controller: idAnggotaCtrl,
+                      decoration: InputDecoration(
+                        labelText: 'ID Anggota',
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                        filled: true,
+                        fillColor: theme.brightness == Brightness.dark
+                            ? Colors.grey.shade800
+                            : Colors.teal.shade50,
+                      ),
+                      style: TextStyle(color: theme.brightness == Brightness.dark ? Colors.white : Colors.black),
+                      validator: (value) => value!.isEmpty ? 'ID Anggota wajib diisi' : null,
+                    ),
+                    const SizedBox(height: 10),
+                    TextFormField(
+                      controller: tanggalPinjamCtrl,
+                      readOnly: true,
+                      onTap: pilihTanggal,
+                      decoration: InputDecoration(
+                        labelText: 'Tanggal Pinjam',
+                        suffixIcon: const Icon(Icons.calendar_today),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                        filled: true,
+                        fillColor: theme.brightness == Brightness.dark
+                            ? Colors.grey.shade800
+                            : Colors.teal.shade50,
+                      ),
+                      style: TextStyle(color: theme.brightness == Brightness.dark ? Colors.white : Colors.black),
+                      validator: (value) => value!.isEmpty ? 'Tanggal Pinjam wajib diisi' : null,
+                    ),
+                    const SizedBox(height: 20),
+                    ElevatedButton.icon(
+                      onPressed: save,
+                      icon: const Icon(Icons.save),
+                      label: const Text('Simpan'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.teal,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      ),
+                    ),
+                  ],
                 ),
-                validator: (value) => value!.isEmpty ? 'ID Buku wajib diisi' : null,
               ),
-              const SizedBox(height: 10),
-              TextFormField(
-                controller: idAnggotaCtrl,
-                decoration: InputDecoration(
-                  labelText: 'ID Anggota',
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-                  filled: true,
-                  fillColor: Colors.teal.shade50,
-                ),
-                validator: (value) => value!.isEmpty ? 'ID Anggota wajib diisi' : null,
-              ),
-              const SizedBox(height: 10),
-              TextFormField(
-                controller: tanggalPinjamCtrl,
-                readOnly: true,
-                onTap: pilihTanggal,
-                decoration: InputDecoration(
-                  labelText: 'Tanggal Pinjam',
-                  suffixIcon: const Icon(Icons.calendar_today),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-                  filled: true,
-                  fillColor: Colors.teal.shade50,
-                ),
-                validator: (value) => value!.isEmpty ? 'Tanggal Pinjam wajib diisi' : null,
-              ),
-              const SizedBox(height: 20),
-              ElevatedButton.icon(
-                onPressed: save,
-                icon: const Icon(Icons.save),
-                label: const Text('Simpan'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.teal,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
+            ),
     );
   }
 }

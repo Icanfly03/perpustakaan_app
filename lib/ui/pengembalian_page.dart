@@ -4,7 +4,7 @@ import 'package:perpustakaan_app/model/peminjaman.dart';
 import 'package:perpustakaan_app/service/pengembalian_service.dart';
 import 'package:perpustakaan_app/service/peminjaman_service.dart';
 import 'package:perpustakaan_app/ui/pengembalian_form.dart';
-import 'package:perpustakaan_app/ui/sidebar.dart';
+import 'package:perpustakaan_app/widget/sidebar.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -20,7 +20,7 @@ class _PengembalianPageState extends State<PengembalianPage> {
   final PeminjamanService _peminjamanService = PeminjamanService();
   List<Pengembalian> _pengembalianList = [];
   List<Peminjaman> _peminjamanList = [];
-  int _dendaPengaturan = 5000; // Default denda (jika belum diatur di PengaturanPage)
+  int _dendaPengaturan = 5000;
 
   @override
   void initState() {
@@ -62,7 +62,6 @@ class _PengembalianPageState extends State<PengembalianPage> {
     }
   }
 
-  // Hitung denda berdasarkan pengaturan dari SharedPreferences
   int hitungDenda(Pengembalian kembali) {
     Peminjaman? pinjam = _peminjamanList.firstWhere(
       (p) => p.idBuku == kembali.idBuku && p.idAnggota == kembali.idAnggota,
@@ -80,6 +79,8 @@ class _PengembalianPageState extends State<PengembalianPage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
       appBar: AppBar(title: const Text('Data Pengembalian')),
       drawer: const Sidebar(),
@@ -94,20 +95,29 @@ class _PengembalianPageState extends State<PengembalianPage> {
             return Card(
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               elevation: 5,
-              color: denda > 0 ? Colors.red.shade100 : Colors.green.shade50,
+              color: denda > 0 
+                ? (theme.brightness == Brightness.dark ? Colors.red.shade900 : Colors.red.shade100)
+                : (theme.brightness == Brightness.dark ? Colors.green.shade900 : Colors.green.shade50),
               child: ListTile(
-                leading: Icon(Icons.assignment_return,
-                    color: denda > 0 ? Colors.red : Colors.green),
+                leading: Icon(
+                  Icons.assignment_return,
+                  color: denda > 0 ? Colors.red : Colors.green,
+                ),
                 title: Text(
                   'ID Buku: ${kembali.idBuku}',
-                  style: const TextStyle(fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: theme.brightness == Brightness.dark ? Colors.white : Colors.black,
+                  ),
                 ),
                 subtitle: Text(
                   'ID Anggota: ${kembali.idAnggota}\n'
                   'Tanggal Kembali: ${formatTanggal(kembali.tanggalPengembalian)}\n'
                   'Denda: Rp ${denda > 0 ? denda : 0}',
                   style: TextStyle(
-                    color: denda > 0 ? Colors.red : Colors.black,
+                    color: denda > 0 
+                        ? Colors.red 
+                        : (theme.brightness == Brightness.dark ? Colors.white70 : Colors.black),
                     fontWeight: denda > 0 ? FontWeight.bold : FontWeight.normal,
                   ),
                 ),

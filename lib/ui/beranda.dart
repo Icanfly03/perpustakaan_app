@@ -6,7 +6,7 @@ import 'package:perpustakaan_app/service/pengembalian_service.dart';
 import 'package:perpustakaan_app/model/peminjaman.dart';
 import 'package:perpustakaan_app/model/pengembalian.dart';
 import 'package:intl/intl.dart';
-import 'package:perpustakaan_app/ui/sidebar.dart';
+import 'package:perpustakaan_app/widget/sidebar.dart';
 
 class BerandaPage extends StatefulWidget {
   const BerandaPage({super.key});
@@ -54,13 +54,11 @@ class _BerandaPageState extends State<BerandaPage> {
     List<Peminjaman> peminjamanList = await _peminjamanService.getAll();
     List<Pengembalian> pengembalianList = await _pengembalianService.getAll();
 
-    // Ambil max 3 aktivitas terakhir dari peminjaman
     List<String> peminjamanRecent = peminjamanList
         .take(3)
         .map((p) => 'Pinjam Buku ${p.idBuku} oleh Anggota ${p.idAnggota} (${DateFormat('dd-MMM-yyyy').format(DateTime.parse(p.tanggalPinjam))})')
         .toList();
 
-    // Ambil max 2 aktivitas terakhir dari pengembalian
     List<String> pengembalianRecent = pengembalianList
         .take(2)
         .map((p) => 'Kembali Buku ${p.idBuku} oleh Anggota ${p.idAnggota} (${p.tanggalPengembalian})')
@@ -77,6 +75,8 @@ class _BerandaPageState extends State<BerandaPage> {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Scaffold(
       appBar: AppBar(title: const Text('Beranda Perpustakaan')),
       drawer: const Sidebar(),
@@ -84,53 +84,61 @@ class _BerandaPageState extends State<BerandaPage> {
         padding: const EdgeInsets.all(16),
         child: ListView(
           children: [
-            const Text('Dashboard Statistik', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            Text('Dashboard Statistik',
+              style: TextStyle(
+                  fontSize: 18, fontWeight: FontWeight.bold, color: colorScheme.onBackground),
+            ),
             const SizedBox(height: 16),
             Row(
               children: [
-                _buildStatCard('Buku', totalBuku, Icons.book),
+                _buildStatCard('Buku', totalBuku, Icons.book, colorScheme),
                 const SizedBox(width: 10),
-                _buildStatCard('Anggota', totalAnggota, Icons.person),
+                _buildStatCard('Anggota', totalAnggota, Icons.person, colorScheme),
               ],
             ),
             const SizedBox(height: 10),
             Row(
               children: [
-                _buildStatCard('Peminjaman', totalPeminjaman, Icons.assignment),
+                _buildStatCard('Peminjaman', totalPeminjaman, Icons.assignment, colorScheme),
                 const SizedBox(width: 10),
-                _buildStatCard('Pengembalian', totalPengembalian, Icons.assignment_return),
+                _buildStatCard('Pengembalian', totalPengembalian, Icons.assignment_return, colorScheme),
               ],
             ),
             const SizedBox(height: 20),
-            const Text('Notifikasi Terlambat', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            Text('Notifikasi Terlambat',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: colorScheme.onBackground),
+            ),
             const SizedBox(height: 8),
             ...notifikasiTerlambat.isEmpty
-                ? [const Text('Tidak ada buku yang terlambat.', style: TextStyle(color: Colors.green))]
-                : notifikasiTerlambat.map((msg) => Text(msg, style: const TextStyle(color: Colors.red))),
+                ? [Text('Tidak ada buku yang terlambat.', style: TextStyle(color: Colors.green.shade700))]
+                : notifikasiTerlambat.map((msg) => Text(msg, style: TextStyle(color: Colors.red.shade400))),
             const SizedBox(height: 20),
-            const Text('Aktivitas Terbaru', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            Text('Aktivitas Terbaru',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: colorScheme.onBackground),
+            ),
             const SizedBox(height: 8),
             ...recentActivities.isEmpty
-                ? [const Text('Belum ada aktivitas terbaru.')]
-                : recentActivities.map((act) => Text('• $act')),
+                ? [Text('Belum ada aktivitas terbaru.', style: TextStyle(color: colorScheme.onBackground))]
+                : recentActivities.map((act) => Text('• $act', style: TextStyle(color: colorScheme.onBackground))),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildStatCard(String title, int count, IconData icon) {
+  Widget _buildStatCard(String title, int count, IconData icon, ColorScheme colorScheme) {
     return Expanded(
       child: Card(
-        color: Colors.teal.shade100,
+        color: colorScheme.surfaceVariant,
         elevation: 4,
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Column(
             children: [
-              Icon(icon, size: 40, color: Colors.teal),
+              Icon(icon, size: 40, color: colorScheme.primary),
               const SizedBox(height: 8),
-              Text('$count $title', style: const TextStyle(fontSize: 16)),
+              Text('$count $title',
+                  style: TextStyle(fontSize: 16, color: colorScheme.onSurface)),
             ],
           ),
         ),

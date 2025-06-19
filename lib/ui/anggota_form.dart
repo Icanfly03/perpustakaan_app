@@ -37,11 +37,9 @@ class _AnggotaFormState extends State<AnggotaForm> {
 
   void save() async {
     if (_formKey.currentState!.validate()) {
-      // Validasi NIM unik
       bool nimSudahAda = _anggotaList.any((anggota) =>
-        anggota.nim.toLowerCase() == nimCtrl.text.toLowerCase() &&
-        anggota.id != (widget.anggota?.id ?? '') // kecuali edit dirinya sendiri
-      );
+          anggota.nim.toLowerCase() == nimCtrl.text.toLowerCase() &&
+          anggota.id != (widget.anggota?.id ?? ''));
 
       if (nimSudahAda) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -78,6 +76,8 @@ class _AnggotaFormState extends State<AnggotaForm> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.anggota == null ? 'Tambah Anggota' : 'Edit Anggota'),
@@ -94,8 +94,11 @@ class _AnggotaFormState extends State<AnggotaForm> {
                   labelText: 'Nama Anggota',
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
                   filled: true,
-                  fillColor: Colors.blue.shade50,
+                  fillColor: theme.brightness == Brightness.dark
+                      ? Colors.grey.shade800
+                      : Colors.blue.shade50,
                 ),
+                style: TextStyle(color: theme.brightness == Brightness.dark ? Colors.white : Colors.black),
                 validator: (value) => value!.isEmpty ? 'Nama wajib diisi' : null,
               ),
               const SizedBox(height: 10),
@@ -106,8 +109,11 @@ class _AnggotaFormState extends State<AnggotaForm> {
                   labelText: 'NIM (Angka Saja)',
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
                   filled: true,
-                  fillColor: Colors.blue.shade50,
+                  fillColor: theme.brightness == Brightness.dark
+                      ? Colors.grey.shade800
+                      : Colors.blue.shade50,
                 ),
+                style: TextStyle(color: theme.brightness == Brightness.dark ? Colors.white : Colors.black),
                 validator: (value) {
                   if (value!.isEmpty) return 'NIM wajib diisi';
                   if (!RegExp(r'^[0-9]+$').hasMatch(value)) return 'NIM harus berupa angka';
@@ -121,8 +127,11 @@ class _AnggotaFormState extends State<AnggotaForm> {
                   labelText: 'Jurusan',
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
                   filled: true,
-                  fillColor: Colors.blue.shade50,
+                  fillColor: theme.brightness == Brightness.dark
+                      ? Colors.grey.shade800
+                      : Colors.blue.shade50,
                 ),
+                style: TextStyle(color: theme.brightness == Brightness.dark ? Colors.white : Colors.black),
                 validator: (value) => value!.isEmpty ? 'Jurusan wajib diisi' : null,
               ),
               const SizedBox(height: 20),

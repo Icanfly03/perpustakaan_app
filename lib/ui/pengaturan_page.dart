@@ -11,8 +11,10 @@ class PengaturanPage extends StatefulWidget {
 
 class _PengaturanPageState extends State<PengaturanPage> {
   final _formKey = GlobalKey<FormState>();
-  final dendaCtrl = TextEditingController();
-  final maxPinjamCtrl = TextEditingController();
+  final TextEditingController dendaCtrl = TextEditingController();
+  final TextEditingController maxPinjamCtrl = TextEditingController();
+
+  bool isLoading = true;
 
   @override
   void initState() {
@@ -25,19 +27,28 @@ class _PengaturanPageState extends State<PengaturanPage> {
     setState(() {
       dendaCtrl.text = (prefs.getInt('denda') ?? 5000).toString();
       maxPinjamCtrl.text = (prefs.getInt('maxPinjam') ?? 3).toString();
+      isLoading = false;
     });
   }
 
   Future<void> simpanPengaturan() async {
     final prefs = await SharedPreferences.getInstance();
-    prefs.setInt('denda', int.parse(dendaCtrl.text));
-    prefs.setInt('maxPinjam', int.parse(maxPinjamCtrl.text));
+    final int? denda = int.tryParse(dendaCtrl.text);
+    final int? maxPinjam = int.tryParse(maxPinjamCtrl.text);
 
+    if (denda == null || maxPinjam == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Denda & Maksimal Pinjam harus angka valid!'), backgroundColor: Colors.red),
+      );
+      return;
+    }
+
+    await prefs.setInt('denda', denda);
+    await prefs.setInt('maxPinjam', maxPinjam);
+
+    if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Pengaturan berhasil disimpan!'),
-        backgroundColor: Colors.teal,
-      ),
+      const SnackBar(content: Text('Pengaturan berhasil disimpan!'), backgroundColor: Colors.teal),
     );
 
     Navigator.pushAndRemoveUntil(
@@ -52,28 +63,40 @@ class _PengaturanPageState extends State<PengaturanPage> {
       dendaCtrl.text = '5000';
       maxPinjamCtrl.text = '3';
     });
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Pengaturan direset ke default.'), backgroundColor: Colors.orange),
+    );
   }
 
   void konfirmasiSimpan() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Konfirmasi'),
-        content: const Text('Apakah Anda yakin ingin menyimpan pengaturan ini?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Batal'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(context);
-              simpanPengaturan();
-            },
-            child: const Text('Simpan'),
-          ),
-        ],
-      ),
+    if (_formKey.currentState!.validate()) {
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Konfirmasi'),
+          content: const Text('Simpan perubahan pengaturan?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Batal'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pop(context);
+                simpanPengaturan();
+              },
+              child: const Text('Simpan'),
+            ),
+          ],
+        ),
+      );
+    }
+  }
+
+  void kembaliTanpaSimpan() {
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (_) => const BerandaPage()),
     );
   }
 
@@ -81,72 +104,66 @@ class _PengaturanPageState extends State<PengaturanPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Pengaturan Aplikasi')),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Form(
-          key: _formKey,
-          child: ListView(
-            children: [
-              TextFormField(
-                controller: dendaCtrl,
-                keyboardType: TextInputType.number,
-                decoration: InputDecoration(
-                  labelText: 'Denda (Rp)',
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-                ),
-                validator: (value) => value!.isEmpty ? 'Denda wajib diisi' : null,
-              ),
-              const SizedBox(height: 10),
-              TextFormField(
-                controller: maxPinjamCtrl,
-                keyboardType: TextInputType.number,
-                decoration: InputDecoration(
-                  labelText: 'Maksimal Peminjaman Buku',
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-                ),
-                validator: (value) => value!.isEmpty ? 'Maksimal peminjaman wajib diisi' : null,
-              ),
-              const SizedBox(height: 20),
-              ElevatedButton.icon(
-                onPressed: () {
-                  if (_formKey.currentState!.validate()) konfirmasiSimpan();
-                },
-                icon: const Icon(Icons.save),
-                label: const Text('Simpan Pengaturan'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.teal,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                ),
-              ),
-              const SizedBox(height: 10),
-              ElevatedButton.icon(
-                onPressed: () {
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(builder: (_) => const BerandaPage()),
-                  );
-                },
-                icon: const Icon(Icons.arrow_back),
-                label: const Text('Kembali Tanpa Simpan'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.grey,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                ),
-              ),
-              const SizedBox(height: 10),
-              ElevatedButton.icon(
-                onPressed: resetPengaturan,
-                icon: const Icon(Icons.restore),
-                label: const Text('Reset ke Default'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.orange,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      body: isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : Padding(
+              padding: const EdgeInsets.all(16),
+              child: Form(
+                key: _formKey,
+                child: ListView(
+                  children: [
+                    TextFormField(
+                      controller: dendaCtrl,
+                      keyboardType: TextInputType.number,
+                      decoration: const InputDecoration(
+                        labelText: 'Denda (Rp)',
+                        border: OutlineInputBorder(),
+                      ),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) return 'Denda wajib diisi';
+                        if (int.tryParse(value) == null) return 'Denda harus berupa angka';
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 10),
+                    TextFormField(
+                      controller: maxPinjamCtrl,
+                      keyboardType: TextInputType.number,
+                      decoration: const InputDecoration(
+                        labelText: 'Maksimal Peminjaman Buku',
+                        border: OutlineInputBorder(),
+                      ),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) return 'Maksimal Pinjam wajib diisi';
+                        if (int.tryParse(value) == null) return 'Harus berupa angka';
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 20),
+                    ElevatedButton.icon(
+                      onPressed: konfirmasiSimpan,
+                      icon: const Icon(Icons.save),
+                      label: const Text('Simpan Pengaturan'),
+                      style: ElevatedButton.styleFrom(backgroundColor: Colors.teal),
+                    ),
+                    const SizedBox(height: 10),
+                    ElevatedButton.icon(
+                      onPressed: kembaliTanpaSimpan,
+                      icon: const Icon(Icons.arrow_back),
+                      label: const Text('Kembali Tanpa Simpan'),
+                      style: ElevatedButton.styleFrom(backgroundColor: Colors.grey),
+                    ),
+                    const SizedBox(height: 10),
+                    ElevatedButton.icon(
+                      onPressed: resetPengaturan,
+                      icon: const Icon(Icons.restore),
+                      label: const Text('Reset ke Default'),
+                      style: ElevatedButton.styleFrom(backgroundColor: Colors.orange),
+                    ),
+                  ],
                 ),
               ),
-            ],
-          ),
-        ),
-      ),
+            ),
     );
   }
 }
